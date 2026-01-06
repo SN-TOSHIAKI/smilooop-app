@@ -1,4 +1,4 @@
-// pages/index.js
+// pages/coupon/index.js
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 
