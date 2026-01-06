@@ -75,7 +75,7 @@ export default function CouponPage() {
       width: '100%', 
       maxWidth: '500px', 
       margin: '0 auto', 
-      height: '100vh', // 画面の高さを100%に固定
+      height: '100dvh', // 画面の高さを100%に固定
       display: 'flex',
       flexDirection: 'column',
       backgroundColor: '#fff',
