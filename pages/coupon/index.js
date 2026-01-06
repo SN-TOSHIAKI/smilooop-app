@@ -8,28 +8,26 @@ export default function CouponPage() {
   const [nowTime, setNowTime] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
 
-  // 1. ユーザーの使用状況とリアルタイム時計の管理
   useEffect(() => {
     async function fetchUserStatus() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('last_used_at')
-          .eq('id', user.id)
-          .single();
-        if (data) setLastUsedAt(data.last_used_at);
-      }
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('last_used_at')
+            .eq('id', user.id)
+            .single();
+          if (data) setLastUsedAt(data.last_used_at);
+        }
+      } catch (e) { console.log("Auth skip"); }
       setIsLoading(false);
     }
     fetchUserStatus();
-
-    // 毎秒時計を更新
     const clockTimer = setInterval(() => setNowTime(new Date()), 1000);
     return () => clearInterval(clockTimer);
   }, []);
 
-  // 2. 1時間のカウントダウンロジック
   useEffect(() => {
     const countdownTimer = setInterval(() => {
       if (!lastUsedAt) return;
@@ -37,50 +35,23 @@ export default function CouponPage() {
       const lastUsed = new Date(lastUsedAt);
       const diffInSeconds = Math.floor((now.getTime() - lastUsed.getTime()) / 1000);
       const oneHour = 3600;
-
-      if (diffInSeconds < oneHour) {
-        setTimeLeft(oneHour - diffInSeconds);
-      } else {
-        setTimeLeft(0);
-      }
+      if (diffInSeconds < oneHour) { setTimeLeft(oneHour - diffInSeconds); } else { setTimeLeft(0); }
     }, 1000);
     return () => clearInterval(countdownTimer);
   }, [lastUsedAt]);
 
-// 3. クーポン使用実行
   const handleUseCoupon = async () => {
-    // まず、今この瞬間の時間を取得（これが時計の基準になります）
     const now = new Date().toISOString();
+    const confirmUse = confirm("店員さんに提示してください。\nOKを押すと使用済み画面に切り替わります。");
+    if (!confirmUse) return;
 
+    setLastUsedAt(now);
     try {
-      const confirmUse = confirm("店員さんに提示してください。\nOKを押すと使用済み画面に切り替わります。");
-      if (!confirmUse) return;
-
-      // --- ここでログイン情報をチェックしますが、エラーが起きても無視するようにします ---
-      try {
-        const { data } = await supabase.auth.getUser();
-        const currentUser = data?.user;
-
-        // ユーザーがいて、かつ id が存在する場合のみ Supabase に保存
-        if (currentUser && currentUser.id) {
-          await supabase
-            .from('profiles')
-            .update({ last_used_at: now })
-            .eq('id', currentUser.id);
-        }
-      } catch (authError) {
-        // ログインチェック自体でエラーが起きても、ここでは何もしない（画面反転を優先）
-        console.log("Auth check skipped or failed");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('profiles').update({ last_used_at: now }).eq('id', user.id);
       }
-
-      // --- 【最重要】何があっても画面を「使用済み（反転）」に切り替える ---
-      setLastUsedAt(now);
-
-    } catch (e) {
-      // 全体のどこかで予期せぬエラーが起きても、強制的に反転させる
-      console.error("Forcing screen flip due to error:", e);
-      setLastUsedAt(now);
-    }
+    } catch (e) { console.error("Update fail"); }
   };
 
   if (isLoading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>読み込み中...</div>;
@@ -95,85 +66,75 @@ export default function CouponPage() {
       width: '100%', 
       maxWidth: '500px', 
       margin: '0 auto', 
-      minHeight: '100vh', 
-      backgroundColor: '#f8f8f8',
-      fontFamily: 'sans-serif' 
+      height: '100vh', // 高さを画面ぴったりに固定
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: '#fff', 
+      fontFamily: 'sans-serif',
+      overflow: 'hidden' // はみ出しを禁止
     }}>
       
-      {/* 背景画像エリア */}
-      <div style={{ width: '100%', lineHeight: 0 }}>
-        <img src="/images/10off.jpg" alt="Coupon" style={{ width: '100%', height: 'auto' }} />
+      {/* 背景画像エリア：画面の約40%に収める */}
+      <div style={{ width: '100%', height: '40vh', overflow: 'hidden' }}>
+        <img src="/images/10off.jpg" alt="Coupon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
 
-      {/* コンテンツエリア */}
-      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      {/* コンテンツエリア：残りの60%を使用 */}
+      <div style={{ 
+        flex: 1, 
+        padding: '15px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', // 中央寄せ
+        gap: '12px' 
+      }}>
         
         {timeLeft > 0 ? (
-          /* --- 【店員さんに見せる画面：180度回転】 --- */
-          <div style={{
-            transform: 'rotate(180deg)',
-            backgroundColor: '#fff',
-            border: '4px solid #e60012',
-            padding: '25px 15px',
-            borderRadius: '20px',
-            textAlign: 'center',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+          /* --- 【使用済み：反転画面】 --- */
+          <div style={{ 
+            transform: 'rotate(180deg)', 
+            backgroundColor: '#fff', 
+            border: '4px solid #e60012', 
+            padding: '20px 15px', 
+            borderRadius: '20px', 
+            textAlign: 'center', 
+            boxShadow: '0 5px 20px rgba(0,0,0,0.1)' 
           }}>
-            <p style={{ color: '#e60012', fontWeight: 'bold', fontSize: '20px', margin: '0' }}>店員様確認用画面</p>
-            <h2 style={{ fontSize: '42px', margin: '10px 0', color: '#333' }}>10% OFF</h2>
-            <div style={{ backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px' }}>
-              <p style={{ fontSize: '14px', color: '#666', margin: '0' }}>現在時刻（秒単位）</p>
-              <p style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0', letterSpacing: '2px' }}>{timeString}</p>
+            <p style={{ color: '#e60012', fontWeight: 'bold', fontSize: '18px', margin: '0' }}>店員様確認用画面</p>
+            <h2 style={{ fontSize: '38px', margin: '8px 0', color: '#333' }}>10% OFF</h2>
+            <div style={{ backgroundColor: '#f0f0f0', padding: '8px', borderRadius: '10px' }}>
+              <p style={{ fontSize: '13px', color: '#666', margin: '0' }}>現在時刻（秒単位）</p>
+              <p style={{ fontSize: '26px', fontWeight: 'bold', margin: '5px 0' }}>{timeString}</p>
             </div>
-            <p style={{ fontSize: '13px', color: '#999', marginTop: '15px' }}>
-              ※この画面は持ち主側で「使用済み」になっています
-            </p>
           </div>
         ) : (
-          /* --- 【通常時のボタン】 --- */
+          /* --- 【利用するボタン】 --- */
           <button 
-            onClick={handleUseCoupon}
-            style={{
-              backgroundColor: '#e60012',
-              color: '#fff',
-              padding: '20px',
-              borderRadius: '50px',
-              fontSize: '20px',
-              fontWeight: 'bold',
-              border: 'none',
-              boxShadow: '0 4px 15px rgba(230,0,18,0.3)',
-              cursor: 'pointer'
+            onClick={handleUseCoupon} 
+            style={{ 
+              backgroundColor: '#e60012', color: '#fff', padding: '18px', borderRadius: '50px', 
+              fontSize: '20px', fontWeight: 'bold', border: 'none', 
+              boxShadow: '0 4px 15px rgba(230,0,18,0.3)', cursor: 'pointer' 
             }}
           >
             10％OFFを利用する
           </button>
         )}
 
-        {/* --- LINEに戻るボタン（常に下向き・持ち主用） --- */ }
+        {/* --- LINEに戻るボタン --- */}
         <button 
           onClick={() => window.location.href = 'https://line.me/R/nv/chat'} 
-          style={{
-            backgroundColor: '#06C755',
-            color: '#fff',
-            padding: '15px',
-            borderRadius: '12px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            border: 'none',
-            marginTop: '10px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
+          style={{ 
+            backgroundColor: '#06C755', color: '#fff', padding: '14px', borderRadius: '12px', 
+            fontSize: '16px', fontWeight: 'bold', border: 'none', cursor: 'pointer' 
           }}
         >
-          <span>LINEに戻る</span>
+          LINEに戻る
         </button>
 
         {timeLeft > 0 && (
-          <p style={{ textAlign: 'center', color: '#666', fontSize: '14px' }}>
-            あと {minutes}分 {seconds}秒 で再利用可能になります
+          <p style={{ textAlign: 'center', color: '#666', fontSize: '13px', margin: '0' }}>
+            あと {minutes}分 {seconds}秒 で再利用可能
           </p>
         )}
       </div>
