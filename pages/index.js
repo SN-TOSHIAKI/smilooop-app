@@ -1,5 +1,6 @@
+// pages/index.js
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 export default function CouponPage() {
   const [lastUsedAt, setLastUsedAt] = useState(null);
@@ -144,7 +145,7 @@ export default function CouponPage() {
               cursor: 'pointer'
             }}
           >
-            １０％OFFを利用する
+            10％OFFを利用する
           </button>
         )}
 
