@@ -145,7 +145,7 @@ export default function CouponPage() {
 
         {/* --- LINEに戻るボタン：ここが画面最下部に必ず収まる --- */}
         <button 
-          onClick={() => window.location.href = 'https://line.me/R/nv/chat'} 
+          onClick={() => window.location.href = 'https://line.me/R/oaMessage/@884gzqsd/'} 
           style={{
             backgroundColor: '#06C755',
             color: '#fff',
@@ -157,7 +157,7 @@ export default function CouponPage() {
             cursor: 'pointer'
           }}
         >
-          LINEに戻る
+          トーク画面に戻る
         </button>
 
         {timeLeft > 0 && (
