@@ -48,25 +48,33 @@ export default function CouponPage() {
 
   // 3. クーポン使用実行
   const handleUseCoupon = async () => {
-    const confirmUse = confirm("店員さんに提示してください。\nOKを押すと使用済み画面に切り替わります。");
-    if (!confirmUse) return;
+    try {
+      const confirmUse = confirm("店員さんに提示してください。\nOKを押すと使用済み画面に切り替わります。");
+      if (!confirmUse) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert("ログインが必要です");
-      return;
-    }
+      // ユーザー情報の取得を試みる
+      const { data: { user } } = await supabase.auth.getUser();
+      const now = new Date().toISOString();
 
-    const now = new Date().toISOString();
-    const { error } = await supabase
-      .from('profiles')
-      .update({ last_used_at: now })
-      .eq('id', user.id);
+      // ログインしている場合のみ、データベース(Supabase)に記録する
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ last_used_at: now })
+          .eq('id', user.id);
+        
+        if (error) {
+          console.error("Supabase更新エラー:", error.message);
+        }
+      }
 
-    if (!error) {
+      // 【重要】ログインしていなくても、画面上は「使用済み」に切り替えて反転させる
       setLastUsedAt(now);
-    } else {
-      alert("エラーが発生しました。もう一度お試しください。");
+
+    } catch (e) {
+      console.error("予期せぬエラー:", e);
+      // 万が一エラーが起きても、強制的に画面を切り替える
+      setLastUsedAt(new Date().toISOString());
     }
   };
 
