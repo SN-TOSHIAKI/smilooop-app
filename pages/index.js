@@ -144,7 +144,7 @@ export default function CouponPage() {
               cursor: 'pointer'
             }}
           >
-            10％OFFを利用する
+            １０％OFFを利用する
           </button>
         )}
 
