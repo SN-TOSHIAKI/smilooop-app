@@ -145,7 +145,7 @@ export default function CouponPage() {
 
         {/* --- LINEに戻るボタン：ここが画面最下部に必ず収まる --- */}
         <button 
-          onClick={() => window.location.href = 'https://line.me/R/oaMessage/@884gzqsd/'} 
+          onClick={() => window.location.href = 'https://line.me/R/ti/p/@884gzqsd'} 
           style={{
             backgroundColor: '#06C755',
             color: '#fff',
