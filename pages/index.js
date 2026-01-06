@@ -1,113 +1,169 @@
-// pages/index.js
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import { supabase } from '../lib/supabase'; // 2-1で作成したファイルを参照
-import liff from '@line/liff';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 
-// あなたのLIFF IDをここに記述！
-const LIFF_ID = '2008811405-AwPJHD5h'; // ここにあなたのLIFF IDを貼り付けてください
-
-export default function Home() {
-  const [liffError, setLiffError] = useState(null);
-  const [lineProfile, setLineProfile] = useState(null);
-  const [appUser, setAppUser] = useState(null);
+export default function CouponPage() {
+  const [lastUsedAt, setLastUsedAt] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [nowTime, setNowTime] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
 
+  // 1. ユーザーの使用状況とリアルタイム時計の管理
   useEffect(() => {
-    liff.init({ liffId: LIFF_ID })
-      .then(() => {
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+    async function fetchUserStatus() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('last_used_at')
+          .eq('id', user.id)
+          .single();
+        if (data) setLastUsedAt(data.last_used_at);
+      }
+      setIsLoading(false);
+    }
+    fetchUserStatus();
 
-        Promise.all([
-          liff.getProfile(),
-          liff.getIDToken()
-        ]).then(async ([profile, idToken]) => {
-          setLineProfile(profile);
-          const lineUserId = profile.userId;
-
-          // 4. Supabaseにユーザー情報を登録/更新
-          const { data: existingUser, error: fetchError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('line_user_id', lineUserId)
-            .single();
-
-          if (fetchError && fetchError.code !== 'PGRST116') {
-            console.error('Supabase fetch error:', fetchError);
-            setIsLoading(false);
-            return;
-          }
-
-          let userData;
-          if (existingUser) {
-            const { data: updatedData, error: updateError } = await supabase
-              .from('users')
-              .update({ display_name: profile.displayName })
-              .eq('id', existingUser.id)
-              .select()
-              .single();
-            userData = updatedData;
-          } else {
-            const { data: newData, error: insertError } = await supabase
-              .from('users')
-              .insert({ line_user_id: lineUserId, display_name: profile.displayName })
-              .select()
-              .single();
-            userData = newData;
-          }
-          
-          setAppUser(userData);
-          setIsLoading(false);
-
-        }).catch((err) => {
-          console.error('LIFF/Profile Error:', err);
-          setLiffError(err.toString());
-          setIsLoading(false);
-        });
-      })
-      .catch((err) => {
-        console.error('LIFF Init Error:', err);
-        setLiffError(err.toString());
-        setIsLoading(false);
-      });
+    // 毎秒時計を更新
+    const clockTimer = setInterval(() => setNowTime(new Date()), 1000);
+    return () => clearInterval(clockTimer);
   }, []);
 
-  if (isLoading) {
-    return <div>LINEログインとデータ連携中です...</div>;
-  }
+  // 2. 1時間のカウントダウンロジック
+  useEffect(() => {
+    const countdownTimer = setInterval(() => {
+      if (!lastUsedAt) return;
+      const now = new Date();
+      const lastUsed = new Date(lastUsedAt);
+      const diffInSeconds = Math.floor((now.getTime() - lastUsed.getTime()) / 1000);
+      const oneHour = 3600;
 
-  if (liffError) {
-    return <div>LIFFエラーが発生しました: {liffError}</div>;
-  }
+      if (diffInSeconds < oneHour) {
+        setTimeLeft(oneHour - diffInSeconds);
+      } else {
+        setTimeLeft(0);
+      }
+    }, 1000);
+    return () => clearInterval(countdownTimer);
+  }, [lastUsedAt]);
 
-  if (!lineProfile || !appUser) {
-    return <div>ログイン情報が取得できませんでした。</div>;
-  }
+  // 3. クーポン使用実行
+  const handleUseCoupon = async () => {
+    const confirmUse = confirm("店員さんに提示してください。\nOKを押すと使用済み画面に切り替わります。");
+    if (!confirmUse) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("ログインが必要です");
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const { error } = await supabase
+      .from('profiles')
+      .update({ last_used_at: now })
+      .eq('id', user.id);
+
+    if (!error) {
+      setLastUsedAt(now);
+    } else {
+      alert("エラーが発生しました。もう一度お試しください。");
+    }
+  };
+
+  if (isLoading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>読み込み中...</div>;
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const timeString = nowTime.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   return (
-    <div style={{ padding: '20px' }}>
-      <Head>
-        <title>smilooop アプリ</title>
-      </Head>
-
-      <h1>ログイン完了！ようこそ、{lineProfile.displayName}様</h1>
-
-      <p>この画面が「smilooopアプリ」のマイページになります。</p>
-
-      <h2>Supabase 連携情報</h2>
-      <p><strong>DB内のユーザーID:</strong> {appUser.id}</p>
-      <p><strong>DB内のパートナーフラグ:</strong> {appUser.is_partner ? 'ON' : 'OFF'}</p>
+    <div style={{ 
+      position: 'relative', 
+      width: '100%', 
+      maxWidth: '500px', 
+      margin: '0 auto', 
+      minHeight: '100vh', 
+      backgroundColor: '#f8f8f8',
+      fontFamily: 'sans-serif' 
+    }}>
       
-      <h2>LINE プロフィール情報</h2>
-      <p><strong>LINEユーザーID:</strong> {lineProfile.userId}</p>
-      {lineProfile.pictureUrl && (
-        <img src={lineProfile.pictureUrl} alt="Profile" style={{ width: '80px', borderRadius: '50%' }} />
-      )}
-      
-      <button onClick={() => liff.logout()}>LINEログアウト</button>
+      {/* 背景画像エリア */}
+      <div style={{ width: '100%', lineHeight: 0 }}>
+        <img src="/images/10off.jpg" alt="Coupon" style={{ width: '100%', height: 'auto' }} />
+      </div>
+
+      {/* コンテンツエリア */}
+      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        
+        {timeLeft > 0 ? (
+          /* --- 【店員さんに見せる画面：180度回転】 --- */
+          <div style={{
+            transform: 'rotate(180deg)',
+            backgroundColor: '#fff',
+            border: '4px solid #e60012',
+            padding: '25px 15px',
+            borderRadius: '20px',
+            textAlign: 'center',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+          }}>
+            <p style={{ color: '#e60012', fontWeight: 'bold', fontSize: '20px', margin: '0' }}>店員様確認用画面</p>
+            <h2 style={{ fontSize: '42px', margin: '10px 0', color: '#333' }}>10% OFF</h2>
+            <div style={{ backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '10px' }}>
+              <p style={{ fontSize: '14px', color: '#666', margin: '0' }}>現在時刻（秒単位）</p>
+              <p style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0', letterSpacing: '2px' }}>{timeString}</p>
+            </div>
+            <p style={{ fontSize: '13px', color: '#999', marginTop: '15px' }}>
+              ※この画面は持ち主側で「使用済み」になっています
+            </p>
+          </div>
+        ) : (
+          /* --- 【通常時のボタン】 --- */
+          <button 
+            onClick={handleUseCoupon}
+            style={{
+              backgroundColor: '#e60012',
+              color: '#fff',
+              padding: '20px',
+              borderRadius: '50px',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              border: 'none',
+              boxShadow: '0 4px 15px rgba(230,0,18,0.3)',
+              cursor: 'pointer'
+            }}
+          >
+            クーポンを利用する
+          </button>
+        )}
+
+        {/* --- LINEに戻るボタン（常に下向き・持ち主用） --- */ }
+        <button 
+          onClick={() => window.location.href = 'https://line.me/R/nv/chat'} 
+          style={{
+            backgroundColor: '#06C755',
+            color: '#fff',
+            padding: '15px',
+            borderRadius: '12px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            border: 'none',
+            marginTop: '10px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          <span>LINEに戻る</span>
+        </button>
+
+        {timeLeft > 0 && (
+          <p style={{ textAlign: 'center', color: '#666', fontSize: '14px' }}>
+            あと {minutes}分 {seconds}秒 で再利用可能になります
+          </p>
+        )}
+      </div>
     </div>
   );
-}// JavaScript Document
+}
