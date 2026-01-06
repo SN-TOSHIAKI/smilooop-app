@@ -46,31 +46,39 @@ export default function CouponPage() {
     return () => clearInterval(countdownTimer);
   }, [lastUsedAt]);
 
- // 3. クーポン使用実行
+// 3. クーポン使用実行
   const handleUseCoupon = async () => {
+    // まず、今この瞬間の時間を取得（これが時計の基準になります）
+    const now = new Date().toISOString();
+
     try {
       const confirmUse = confirm("店員さんに提示してください。\nOKを押すと使用済み画面に切り替わります。");
       if (!confirmUse) return;
 
-      // ユーザー情報の取得を試みるが、失敗しても止まらないようにする
-      const { data: { user } } = await supabase.auth.getUser();
-      const now = new Date().toISOString();
+      // --- ここでログイン情報をチェックしますが、エラーが起きても無視するようにします ---
+      try {
+        const { data } = await supabase.auth.getUser();
+        const currentUser = data?.user;
 
-      // ログインしている場合のみ、データベース(Supabase)に記録を試みる
-      if (user && user.id) {
-        await supabase
-          .from('profiles')
-          .update({ last_used_at: now })
-          .eq('id', user.id);
+        // ユーザーがいて、かつ id が存在する場合のみ Supabase に保存
+        if (currentUser && currentUser.id) {
+          await supabase
+            .from('profiles')
+            .update({ last_used_at: now })
+            .eq('id', currentUser.id);
+        }
+      } catch (authError) {
+        // ログインチェック自体でエラーが起きても、ここでは何もしない（画面反転を優先）
+        console.log("Auth check skipped or failed");
       }
 
-      // 【重要】ログインの有無にかかわらず、画面を「使用済み」状態（反転）に切り替える
+      // --- 【最重要】何があっても画面を「使用済み（反転）」に切り替える ---
       setLastUsedAt(now);
 
     } catch (e) {
-      console.error("エラーが発生しましたが、画面を切り替えます:", e);
-      // 万が一何かのエラーが起きても、強制的に反転させる
-      setLastUsedAt(new Date().toISOString());
+      // 全体のどこかで予期せぬエラーが起きても、強制的に反転させる
+      console.error("Forcing screen flip due to error:", e);
+      setLastUsedAt(now);
     }
   };
 
