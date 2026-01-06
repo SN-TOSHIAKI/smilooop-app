@@ -86,18 +86,22 @@ export default function CouponPage() {
       position: 'relative', 
       width: '100%', 
       maxWidth: '500px', 
-      margin: '0 auto', 
-      minHeight: '100vh', 
+      margin: '0 auto', // 左右は中央寄せ
+      minHeight: '100vh', // 画面の高さを確保
       backgroundColor: '#f8f8f8',
-      fontFamily: 'sans-serif' 
+      fontFamily: 'sans-serif',
+      // 【ここを追加】中身を強制的に「上基準」で配置します
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start' 
     }}>
       
-      {/* 背景画像エリア：元の「height: auto」に戻しました */}
-      <div style={{ width: '100%', lineHeight: 0 }}>
-        <img src="/images/10off.jpg" alt="Coupon" style={{ width: '100%', height: 'auto' }} />
+      {/* 背景画像エリア */}
+      <div style={{ width: '100%', lineHeight: 0, flexShrink: 0 }}>
+        <img src="/images/10off.jpg" alt="Coupon" style={{ width: '100%', height: 'auto', display: 'block' }} />
       </div>
 
-      {/* コンテンツエリア：元の「padding: 20px」と「gap: 15px」に戻しました */}
+      {/* コンテンツエリア */}
       <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
         
         {timeLeft > 0 ? (
@@ -141,34 +145,4 @@ export default function CouponPage() {
           </button>
         )}
 
-        {/* --- LINEに戻るボタン --- */}
-        <button 
-          onClick={() => window.location.href = 'https://line.me/R/nv/chat'} 
-          style={{
-            backgroundColor: '#06C755',
-            color: '#fff',
-            padding: '15px',
-            borderRadius: '12px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            border: 'none',
-            marginTop: '10px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}
-        >
-          <span>LINEに戻る</span>
-        </button>
-
-        {timeLeft > 0 && (
-          <p style={{ textAlign: 'center', color: '#666', fontSize: '14px' }}>
-            あと {minutes}分 {seconds}秒 で再利用可能になります
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
+        {/* --- LINEに戻
