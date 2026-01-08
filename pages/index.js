@@ -8,20 +8,23 @@ export default function Login() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const initAuth = async () => {
       try {
-        // 1. まずリダイレクトから戻ってきた結果（成功情報）があるか確認
+        // 1. まずリダイレクトから戻ってきた「結果」を待つ
         const result = await getRedirectResult(auth);
+        
         if (result?.user) {
+          // ログイン成功直後なら、即座にmemberページへ
           router.push('/member');
           return;
         }
 
-        // 2. すでにログイン済みか確認
+        // 2. すでにログインセッションがあるか確認
         onAuthStateChanged(auth, (user) => {
           if (user) {
             router.push('/member');
           } else {
+            // 本当にログインしていない時だけ、ボタンを表示する
             setLoading(false);
           }
         });
@@ -31,7 +34,7 @@ export default function Login() {
       }
     };
 
-    checkAuth();
+    initAuth();
   }, [router]);
 
   const handleLogin = () => {
@@ -39,10 +42,11 @@ export default function Login() {
     signInWithRedirect(auth, lineProvider);
   };
 
+  // 読み込み中（または転送中）は何も出さない、もしくは「確認中」と出す
   if (loading) {
     return (
       <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'sans-serif' }}>
-        <p>読み込み中...</p>
+        <p>ログイン情報を確認しています...</p>
       </div>
     );
   }
@@ -52,13 +56,10 @@ export default function Login() {
       <img src="/images/logo.png" style={{ width: '80%', maxWidth: '400px', marginBottom: '30px' }} alt="logo" />
       <button 
         onClick={handleLogin}
-        style={{ backgroundColor: '#06C755', color: 'white', padding: '16px 32px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+        style={{ backgroundColor: '#06C755', color: 'white', padding: '16px 32px', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '1rem' }}
       >
         LINEでログイン
       </button>
-      <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '20px' }}>
-        ※ログインできない場合はSafariの「サイト越えトラッキングを防ぐ」をオフにしてください
-      </p>
     </div>
   );
 }
