@@ -1,115 +1,76 @@
-// pages/index.js
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { supabase } from '../lib/supabase';
+import { useState, useEffect } from 'react';
+import { auth, lineProvider, db } from '../lib/firebase';
+import { signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-export default function HomePage() {
+export default function Home() {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
-    // 現在のログイン状態をチェック
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data?.user || null);
-      setIsLoading(false);
-    };
-    checkUser();
-
-    // ログイン状態の変化を監視（ログイン成功時に実行）
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        setUser(session.user);
-        // ログイン直後に profiles テーブルにデータがなければ作成
-        await supabase.from('profiles').upsert(
-          { id: session.user.id, is_paid: false }, 
-          { onConflict: 'id' } // すでにある場合は無視、なければ作成
-        );
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Firebaseのデータベースに「支払い済み」の記録があるか確認
+        const docRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists() && docSnap.data().isPaid) {
+          setIsMember(true);
+        }
       }
     });
-
-    return () => authListener.subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
-  // LINEログインを実行する関数
-  const handleLineLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'line',
-      options: {
-        redirectTo: window.location.origin + '/coupon', // ログイン後にクーポン画面へ飛ばす
-      },
-    });
-    if (error) alert("ログインエラーが発生しました");
-  };
-
-  if (isLoading) return <div style={{ textAlign: 'center', marginTop: '100px' }}>読み込み中...</div>;
+  const loginWithLine = () => signInWithPopup(auth, lineProvider);
+  const handleLogout = () => { signOut(auth); setIsMember(false); };
 
   return (
-    <div style={{ 
-      textAlign: 'center', 
-      marginTop: '100px', 
-      padding: '0 20px',
-      fontFamily: 'sans-serif' 
-    }}>
-      <h1 style={{ fontSize: '24px', marginBottom: '10px' }}>smilooop アプリ</h1>
+    <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'sans-serif' }}>
       
+      {/* ロゴ画像に変更 */}
+      <img 
+        src="/images/logo.png" 
+        alt="Smilooop" 
+        style={{ 
+          width: '80%', 
+          maxWidth: '500px', 
+          height: 'auto', 
+          display: 'block',      // ブロック要素にして横並びを禁止する
+          margin: '0 auto 20px', // 上下中央に配置し、下に20pxの余白を作る 
+        }} 
+      />
       {!user ? (
-        <>
-          <p style={{ color: '#666', marginBottom: '30px' }}>
-            クーポンを利用するには<br />LINEログインが必要です。
-          </p>
-          {/* LINEログインボタン */}
-          <button 
-            onClick={handleLineLogin}
-            style={{
-              backgroundColor: '#06C755', // LINEカラー
-              color: '#fff',
-              padding: '16px 40px',
-              borderRadius: '50px',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(6,199,85,0.3)',
-              width: '100%',
-              maxWidth: '300px'
-            }}
-          >
-            LINEでログイン
-          </button>
-        </>
+        <button onClick={loginWithLine} style={{ backgroundColor: '#06C755', color: 'white', padding: '15px 30px', border: 'none', borderRadius: '5px' }}>
+          LINEでログイン
+        </button>
       ) : (
-        <>
-          <p style={{ color: '#666', marginBottom: '30px' }}>
-            ようこそ！<br />ログインしています。
-          </p>
-          <button 
-            onClick={() => router.push('/coupon')}
-            style={{
-              backgroundColor: '#e60012',
-              color: '#fff',
-              padding: '16px 40px',
-              borderRadius: '50px',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(230,0,18,0.3)',
-              width: '100%',
-              maxWidth: '300px'
-            }}
-          >
-            クーポンを表示する
-          </button>
+        <div>
+          <p>ようこそ、{user.displayName} さん！</p>
           
-          <p 
-            onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }}
-            style={{ marginTop: '40px', color: '#999', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}
-          >
-            ログアウト
-          </p>
-        </>
+          {isMember ? (
+            // 【会員限定画面】
+            <div style={{ padding: '20px' }}>
+    <h2>🎉 会員認証済み</h2>
+    <p>クーポンを表示します...</p>
+    <button 
+      onClick={() => window.location.href = '/coupon'}
+      style={{ backgroundColor: 'gold', padding: '15px 30px', borderRadius: '10px', fontWeight: 'bold' }}
+    >
+      クーポン画面を開く
+    </button>
+  </div>
+          ) : (
+            // 【未払い画面】
+            <div style={{ padding: '20px', border: '1px solid #ddd' }}>
+              <p>クーポンを見るには月額会員登録が必要です</p>
+              <a href="https://buy.stripe.com/14A28raHs2ppdOXaJi5wI03" style={{ backgroundColor: '#6772E5', color: 'white', padding: '10px 20px', textDecoration: 'none', borderRadius: '5px' }}>
+                今すぐ登録 (月額500円)
+              </a>
+            </div>
+          )}
+          <button onClick={handleLogout} style={{ marginTop: '50px', background: 'none', border: 'none', textDecoration: 'underline' }}>ログアウト</button>
+        </div>
       )}
     </div>
   );
