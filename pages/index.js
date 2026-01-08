@@ -7,9 +7,15 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [isMember, setIsMember] = useState(false);
 
+  export default function Home() {
+  const [user, setUser] = useState(null);
+  const [isMember, setIsMember] = useState(false);
+  const [loading, setLoading] = useState(true); // 🚀 読み込み状態を追加
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      
       if (currentUser) {
         // Firebaseのデータベースに「支払い済み」の記録があるか確認
         const docRef = doc(db, "users", currentUser.uid);
@@ -18,9 +24,21 @@ export default function Home() {
           setIsMember(true);
         }
       }
+      
+      setLoading(false); // 🚀 ログインチェック（＋Firestore確認）が終わったらfalseにする
     });
+    
     return () => unsubscribe();
   }, []);
+
+  // 🚀 読み込み中は「確認中...」と表示して、ログインボタンを出さないようにする
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: '100px' }}>
+        <p>ログイン確認中...</p>
+      </div>
+    );
+  }
 
   const loginWithLine = () => {
   // LINEアプリ内ブラウザはポップアップを禁止しているため、画面遷移（リダイレクト）方式を使います
