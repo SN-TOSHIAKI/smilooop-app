@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { auth, lineProvider, db } from '../lib/firebase';
-import { signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function Home() {
@@ -22,7 +22,10 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  const loginWithLine = () => signInWithPopup(auth, lineProvider);
+  const loginWithLine = () => {
+  // LINEアプリ内ブラウザはポップアップを禁止しているため、画面遷移（リダイレクト）方式を使います
+  signInWithRedirect(auth, lineProvider);
+};
   const handleLogout = () => { signOut(auth); setIsMember(false); };
 
   return (
