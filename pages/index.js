@@ -1,107 +1,59 @@
-import { useState, useEffect } from 'react';
+'use client';
 import { auth, lineProvider } from '../lib/firebase';
-import { signInWithRedirect, getRedirectResult, onAuthStateChanged } from 'firebase/auth';
-import { useRouter } from 'next/router';
+import { signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth';
+import { useEffect, useState } from 'react';
 
-export default function Login() {
-  const router = useRouter();
+export default function Home() {
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
 
+  // ログイン状態を監視
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        // 1. リダイレクトから戻ってきた結果（LINEからの成功情報）があるか確認
-        const result = await getRedirectResult(auth);
-        
-        if (result?.user) {
-          // ログイン成功直後なら、即座に会員ページへ
-          router.push('/member');
-          return;
-        }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
-        // 2. すでにログイン済みか、セッションがあるか確認
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            router.push('/member');
-          } else {
-            // 本当にログインしていない時だけ、ボタンを表示する
-            setLoading(false);
-          }
-        });
-      } catch (error) {
-        // 🚀 エラーの内容を具体的に画面に表示させる
-        console.error("Authエラー詳細:", error);
-        setErrorMessage(`【認証エラー】 ${error.code}: ${error.message}`);
-        setLoading(false);
-      }
-    };
-
-    initAuth();
-  }, [router]);
-
-  const handleLogin = () => {
-    setLoading(true);
-    setErrorMessage(""); // 再試行時はエラーを消す
-    signInWithRedirect(auth, lineProvider);
+  // ログイン処理（ポップアップ方式）
+  const login = async () => {
+    try {
+      await signInWithPopup(auth, lineProvider);
+    } catch (error) {
+      alert("ログインエラー: " + error.message);
+      console.error(error);
+    }
   };
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'sans-serif' }}>
-        <p>読み込み中...</p>
-        <div style={{ margin: '20px auto', width: '30px', height: '30px', border: '3px solid #ccc', borderTop: '3px solid #06C755', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
+  // ログアウト処理
+  const logout = () => signOut(auth);
+
+  if (loading) return <div style={{ padding: '20px' }}>読み込み中...</div>;
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'sans-serif', padding: '0 20px' }}>
-      <img 
-        src="/images/logo.png" 
-        alt="logo" 
-        style={{ width: '80%', maxWidth: '300px', marginBottom: '30px' }} 
-      />
-
-      {/* 🚀 エラーが出た場合、ここに赤い枠で表示されます */}
-      {errorMessage && (
-        <div style={{ 
-          backgroundColor: '#fff5f5', 
-          color: '#e53e3e', 
-          padding: '15px', 
-          borderRadius: '8px', 
-          border: '1px solid #feb2b2', 
-          marginBottom: '20px',
-          fontSize: '0.9rem',
-          textAlign: 'left',
-          wordBreak: 'break-all'
-        }}>
-          <strong>⚠️ ログインできませんでした</strong><br/>
-          {errorMessage}
+    <div style={{ padding: '50px', textAlign: 'center', fontFamily: 'sans-serif' }}>
+      <h1>LINEログイン テスト</h1>
+      
+      {!user ? (
+        <div>
+          <p>まだログインしていません</p>
+          <button onClick={login} style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer', backgroundColor: '#00B900', color: '#fff', border: 'none', borderRadius: '5px' }}>
+            LINEでログイン
+          </button>
+        </div>
+      ) : (
+        <div>
+          <p>🎉 ログイン成功！</p>
+          <p>表示名: <strong>{user.displayName}</strong></p>
+          <p>ユーザーID(UID): <code>{user.uid}</code></p>
+          <button onClick={logout} style={{ marginTop: '20px' }}>ログアウト</button>
         </div>
       )}
 
-      <button 
-        onClick={handleLogin}
-        style={{ 
-          backgroundColor: '#06C755', 
-          color: 'white', 
-          padding: '16px 32px', 
-          border: 'none', 
-          borderRadius: '8px', 
-          fontWeight: 'bold', 
-          fontSize: '1rem',
-          cursor: 'pointer',
-          width: '100%',
-          maxWidth: '300px'
-        }}
-      >
-        LINEでログイン
-      </button>
-
-      <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '30px' }}>
-        ※エラーが続く場合は、ブラウザの「履歴とWebサイトデータを消去」をお試しください。
+      <hr style={{ margin: '40px 0' }} />
+      <p style={{ fontSize: '12px', color: '#666' }}>
+        現在のドメイン: {typeof window !== 'undefined' ? window.location.hostname : ''}
       </p>
     </div>
   );
