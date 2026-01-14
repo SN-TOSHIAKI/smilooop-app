@@ -1,59 +1,67 @@
-'use client';
-import { auth, lineProvider } from '../lib/firebase';
-import { 
-  signInWithRedirect, 
-  getRedirectResult, 
-  onAuthStateChanged 
-} from 'firebase/auth';
-import { useEffect, useState } from 'react';
+import Head from 'next/head';
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // 1. リダイレクトから戻ってきた結果を確認
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          console.log("ログイン成功:", result.user);
-        }
-      })
-      .catch((error) => {
-        console.error("リダイレクトエラー:", error);
-      });
-
-    // 2. ログイン状態の監視
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const login = async () => {
-    try {
-      await signInWithRedirect(auth, lineProvider);
-    } catch (error) {
-      alert("ログイン開始エラー: " + error.code);
-    }
+  const loginWithLine = () => {
+    // envからLINEのチャネルIDを取得（.env.localに記載したもの）
+    const clientId = process.env.LINE_CLIENT_ID; 
+    
+    // コールバックURL（LINE Developersに登録したものと一致させる）
+    // 変数名を統一してエラーを防ぎます
+    const redirectUri = encodeURIComponent('https://app.smilooop.com/callback');
+    
+    // セキュリティ用のランダムな文字列（今回は簡易的に固定）
+    const state = '12345abcde';
+    
+    // LINEの認可画面（ログイン画面）のURLを組み立て
+    // ここで ${redirectUri} を正しく呼び出しています
+    const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=profile%20openid%20email`;
+    
+    // LINEの画面にジャンプ！
+    window.location.href = lineAuthUrl;
   };
 
-  if (loading) return <div style={{ padding: '20px' }}>アプリを起動中...</div>;
-
   return (
-    <div style={{ padding: '50px', textAlign: 'center' }}>
-      <h1>LINEログイン テスト</h1>
-      {!user ? (
-        <button onClick={login} style={{ padding: '10px 20px', backgroundColor: '#00B900', color: '#fff' }}>
-          LINEでログイン
-        </button>
-      ) : (
-        <div>
-          <p>こんにちは、{user.displayName}さん</p>
-          <button onClick={() => auth.signOut()}>ログアウト</button>
-        </div>
-      )}
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      height: '100vh',
+      fontFamily: 'sans-serif' 
+    }}>
+      <Head>
+        <title>Smilooop - ログイン</title>
+      </Head>
+
+      <h1 style={{ marginBottom: '10px' }}>Smilooop</h1>
+      <p style={{ color: '#666', marginBottom: '30px' }}>
+        新しいアプリケーションへようこそ
+      </p>
+      
+      {/* LINEログインボタン */}
+      <button 
+        onClick={loginWithLine}
+        style={{
+          backgroundColor: '#06C755', // LINEカラー
+          color: 'white',
+          padding: '14px 28px',
+          border: 'none',
+          borderRadius: '12px',
+          fontSize: '18px',
+          cursor: 'pointer',
+          fontWeight: 'bold',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          transition: 'transform 0.1s'
+        }}
+        onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+        onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        LINEでログイン
+      </button>
+
+      <div style={{ marginTop: '20px', fontSize: '12px', color: '#ccc' }}>
+        Step 1: ユーザー認証を開始します
+      </div>
     </div>
   );
 }
