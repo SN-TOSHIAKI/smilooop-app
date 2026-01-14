@@ -22,7 +22,7 @@ export default function Callback() {
           
           console.log("Firebaseログイン成功！");
           // ログイン後のマイページなどへ飛ばす
-          router.push('/success'); 
+          router.push('/member'); 
         })
         .catch((error) => {
           console.error("ログインエラー:", error);
