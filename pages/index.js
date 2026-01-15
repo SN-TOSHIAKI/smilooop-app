@@ -98,7 +98,7 @@ export default function Home() {
           ) : (
             <div style={{ marginBottom: '30px' }}>
               <p style={{ fontSize: '14px', color: '#666', marginBottom: '20px' }}>
-                限定クーポンを利用するには<br />プランへの申し込みが必要です。
+                限定クーポンを利用するには<br />サブスクの申し込みが必要です。
               </p>
               <button onClick={handlePayment} style={buttonStyle('#0070f3')}>
                 プランに申し込む（決済へ）
