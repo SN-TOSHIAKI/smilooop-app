@@ -1,31 +1,37 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { auth } from '../lib/firebase'; // firebase.jsからauthをインポート
+import { auth, db } from '../lib/firebase';
 import { signInWithCustomToken } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import axios from 'axios';
 
 export default function Callback() {
   const router = useRouter();
 
   useEffect(() => {
-    // URLから code （認可コード）を取得
     const { code } = router.query;
 
     if (code) {
-      // API Route (pages/api/lineAuth.js) に送る
       axios.post('/api/lineAuth', { code })
         .then(async (response) => {
           const { customToken } = response.data;
           
-          // Firebaseでサインイン！
-          await signInWithCustomToken(auth, customToken);
-          
-          console.log("Firebaseログイン成功！");
-          // ログイン後のマイページなどへ飛ばす
-          router.push('/member'); 
+          // Firebaseでサインイン
+          const userCredential = await signInWithCustomToken(auth, customToken);
+          const user = userCredential.user;
+
+          // 🚀 修正ポイント：Firestoreにドキュメントを作成
+          // ドキュメントIDを LINEのUIDに設定
+          await setDoc(doc(db, 'users', user.uid), {
+            uid: user.uid,
+            lastLogin: new Date(),
+          }, { merge: true });
+
+          console.log("User data initialized in Firestore");
+          router.push('/success'); 
         })
         .catch((error) => {
-          console.error("ログインエラー:", error);
+          console.error("Login error:", error);
           alert("ログインに失敗しました。");
         });
     }
@@ -33,8 +39,7 @@ export default function Callback() {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '100px' }}>
-      <h2>LINE認証を確認中...</h2>
-      <p>そのまま少々お待ちください。</p>
+      <h2>認証中...</h2>
     </div>
   );
 }
