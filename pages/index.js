@@ -52,7 +52,7 @@ export default function Home() {
       {!user ? (
         <>
           <p style={{ color: '#666', marginBottom: '30px' }}>
-            アプリケーションへようこそ
+            sアプリケーションへようこそ
           </p>
           <button 
             onClick={loginWithLine}
