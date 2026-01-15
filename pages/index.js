@@ -7,22 +7,25 @@ import { doc, onSnapshot } from 'firebase/firestore'; // リアルタイム監�
 export default function Home() {
   const [user, setUser] = useState(null);
   const [isPaid, setIsPaid] = useState(false); // 支払い状態を管理
+  const [userName, setUserName] = useState("お客様"); // 👈 これを追加！
+  const [loading, setLoading] = useState(true);      // ついでにloadingもあれば完璧です
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
 
       if (currentUser) {
-        // 🚀 ログインしている場合、Firestoreの支払い状態をリアルタイム監視
+        // ログインしている場合：その人の情報をFirestoreからリアルタイムで持ってくる
         const userRef = doc(db, 'users', currentUser.uid);
         const unsubscribeDoc = onSnapshot(userRef, (docSnap) => {
           if (docSnap.exists()) {
-            setIsPaid(docSnap.data().isPaid || false);
+            const data = docSnap.data();
+            setIsPaid(data.isPaid || false);
+            // 🚀 ここで Firestore の 'name' を userName 状態に保存！
+            setUserName(data.name || "お客様"); 
           }
         });
         return () => unsubscribeDoc();
-      } else {
-        setIsPaid(false);
       }
     });
 
@@ -84,7 +87,7 @@ export default function Home() {
       ) : (
         <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
           <p style={{ color: '#666', marginBottom: '20px' }}>
-            こんにちは、{user.displayName || 'ユーザー'}様
+            こんにちは、{userName}様
           </p>
 
           {/* 🚀 支払い状態による表示の切り分け */}
