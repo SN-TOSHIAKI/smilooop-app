@@ -2,13 +2,11 @@ import admin from 'firebase-admin';
 import axios from 'axios';
 import qs from 'querystring';
 
-// Firebase Admin SDKの初期化（二重初期化を防止）
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // 改行コード \n が正しく認識されるように処理
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     }),
   });
@@ -22,22 +20,22 @@ export default async function handler(req, res) {
   const { code } = req.body;
 
   try {
-    // 1. LINE APIに「認可コード」を送り、「アクセストークン」を取得
+    // 1. アクセストークンとIDトークンを取得
     const tokenResponse = await axios.post(
       'https://api.line.me/oauth2/v2.1/token',
       qs.stringify({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: 'https://app.smilooop.com/callback', // LINE Developersの設定と一致させること
+        redirect_uri: 'https://app.smilooop.com/callback',
         client_id: process.env.LINE_CLIENT_ID,
         client_secret: process.env.LINE_CLIENT_SECRET,
       }),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
 
-    // 2. LINEのアクセストークンからユーザーID（sub）を取得
-    // IDトークンの中にユーザー情報が含まれています
     const idToken = tokenResponse.data.id_token;
+
+    // 2. IDトークンを検証してユーザー情報を取得
     const verifyResponse = await axios.post(
       'https://api.line.me/oauth2/v2.1/verify',
       qs.stringify({
@@ -47,14 +45,20 @@ export default async function handler(req, res) {
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
 
-    const lineUserId = verifyResponse.data.sub; // LINEの一意なユーザーID
+    // 🚀 修正ポイント: 名前(name)と写真(picture)を取り出す
+    const lineUserId = verifyResponse.data.sub;
+    const lineDisplayName = verifyResponse.data.name || "";
+    const linePictureUrl = verifyResponse.data.picture || "";
 
-    // 3. Firebaseのカスタムトークンを発行
-    // これにより、LINEユーザーIDをそのままFirebaseのUIDとしてログインできるようになります
+    // 3. Firebaseカスタムトークンの発行
     const firebaseCustomToken = await admin.auth().createCustomToken(lineUserId);
 
-    // 4. カスタムトークンをフロントエンドに返す
-    res.status(200).json({ customToken: firebaseCustomToken });
+    // 🚀 修正ポイント: カスタムトークンと一緒に名前と写真もフロントへ返す
+    res.status(200).json({ 
+      customToken: firebaseCustomToken,
+      displayName: lineDisplayName,
+      pictureUrl: linePictureUrl
+    });
 
   } catch (error) {
     console.error('LINE Auth Error:', error.response?.data || error.message);
