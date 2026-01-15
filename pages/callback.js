@@ -1,67 +1,45 @@
-import admin from 'firebase-admin';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { auth, db } from '../lib/firebase';
+import { signInWithCustomToken } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import axios from 'axios';
-import qs from 'querystring';
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    }),
-  });
-}
+export default function Callback() {
+  const router = useRouter();
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
+  useEffect(() => {
+    const { code } = router.query;
 
-  const { code } = req.body;
+    if (code) {
+      axios.post('/api/lineAuth', { code })
+        .then(async (response) => {
+          // 🚀 修正ポイント: APIから名前(displayName)を受け取る
+          const { customToken, displayName, pictureUrl } = response.data;
+          
+          const userCredential = await signInWithCustomToken(auth, customToken);
+          const user = userCredential.user;
 
-  try {
-    // 1. アクセストークンとIDトークンを取得
-    const tokenResponse = await axios.post(
-      'https://api.line.me/oauth2/v2.1/token',
-      qs.stringify({
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: 'https://app.smilooop.com/callback',
-        client_id: process.env.LINE_CLIENT_ID,
-        client_secret: process.env.LINE_CLIENT_SECRET,
-      }),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
+          // 🚀 修正ポイント: Firestoreに名前も保存する
+          await setDoc(doc(db, 'users', user.uid), {
+            uid: user.uid,
+            name: displayName,      // LINEの名前を保存
+            picture: pictureUrl,   // LINEの写真を保存
+            lastLogin: new Date(),
+          }, { merge: true });
 
-    const idToken = tokenResponse.data.id_token;
+          router.push('/'); // トップページへ戻る
+        })
+        .catch((error) => {
+          console.error("Login error:", error);
+          alert("ログインに失敗しました。");
+        });
+    }
+  }, [router.query]);
 
-    // 2. IDトークンを検証してユーザー情報を取得
-    const verifyResponse = await axios.post(
-      'https://api.line.me/oauth2/v2.1/verify',
-      qs.stringify({
-        id_token: idToken,
-        client_id: process.env.LINE_CLIENT_ID,
-      }),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-
-    // 🚀 修正ポイント: 名前(name)と写真(picture)を取り出す
-    const lineUserId = verifyResponse.data.sub;
-    const lineDisplayName = verifyResponse.data.name || "";
-    const linePictureUrl = verifyResponse.data.picture || "";
-
-    // 3. Firebaseカスタムトークンの発行
-    const firebaseCustomToken = await admin.auth().createCustomToken(lineUserId);
-
-    // 🚀 修正ポイント: カスタムトークンと一緒に名前と写真もフロントへ返す
-    res.status(200).json({ 
-      customToken: firebaseCustomToken,
-      displayName: lineDisplayName,
-      pictureUrl: linePictureUrl
-    });
-
-  } catch (error) {
-    console.error('LINE Auth Error:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Authentication failed' });
-  }
+  return (
+    <div style={{ textAlign: 'center', marginTop: '100px' }}>
+      <h2>認証中...</h2>
+    </div>
+  );
 }
