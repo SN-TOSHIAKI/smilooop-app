@@ -61,7 +61,16 @@ export default function Home() {
         <title>Smilooop</title>
       </Head>
 
-      <h1 style={{ marginBottom: '10px' }}>Smilooop</h1>
+      <img 
+        src="/images/logo.png" 
+        alt="Smilooop Logo" 
+        style={{ 
+          width: '80%', 
+          maxWidth: '300px', 
+          height: 'auto', // アスペクト比を維持
+          marginBottom: '20px' 
+        }} 
+      />
       
       {!user ? (
         <>
