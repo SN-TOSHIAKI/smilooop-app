@@ -1,17 +1,32 @@
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase'; // dbを追加
 import { onAuthStateChanged } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore'; // リアルタイム監視用
 
 export default function Home() {
   const [user, setUser] = useState(null);
+  const [isPaid, setIsPaid] = useState(false); // 支払い状態を管理
 
-  // ログイン状態を監視
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+
+      if (currentUser) {
+        // 🚀 ログインしている場合、Firestoreの支払い状態をリアルタイム監視
+        const userRef = doc(db, 'users', currentUser.uid);
+        const unsubscribeDoc = onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setIsPaid(docSnap.data().isPaid || false);
+          }
+        });
+        return () => unsubscribeDoc();
+      } else {
+        setIsPaid(false);
+      }
     });
-    return () => unsubscribe();
+
+    return () => unsubscribeAuth();
   }, []);
 
   // LINE認証画面へリダイレクト
@@ -26,21 +41,10 @@ export default function Home() {
   // Stripe決済画面へリダイレクト
   const handlePayment = () => {
     if (!user) return;
-    
-    // 1. あなたの決済リンク
     const baseStripeUrl = "https://buy.stripe.com/14A28raHs2ppdOXaJi5wI03"; 
-    
-    try {
-      // 2. 安全にUIDを合体させる
-      const paymentUrl = new URL(baseStripeUrl);
-      paymentUrl.searchParams.set('client_reference_id', user.uid);
-      
-      // 3. ジャンプ！
-      window.location.href = paymentUrl.toString();
-    } catch (e) {
-      // 万が一URL作成に失敗した時の予備
-      window.location.href = baseStripeUrl + "?client_reference_id=" + user.uid;
-    }
+    const paymentUrl = new URL(baseStripeUrl);
+    paymentUrl.searchParams.set('client_reference_id', user.uid);
+    window.location.href = paymentUrl.toString();
   };
 
   return (
@@ -49,8 +53,9 @@ export default function Home() {
       flexDirection: 'column', 
       alignItems: 'center', 
       justifyContent: 'center', 
-      height: '100vh',
-      fontFamily: 'sans-serif' 
+      minHeight: '100vh',
+      fontFamily: 'sans-serif',
+      padding: '20px'
     }}>
       <Head>
         <title>Smilooop</title>
@@ -61,55 +66,67 @@ export default function Home() {
       {!user ? (
         <>
           <p style={{ color: '#666', marginBottom: '30px' }}>
-            sアプリケーションへようこそ
+            新しいアプリケーションへようこそ
           </p>
-          <button 
-            onClick={loginWithLine}
-            style={buttonStyle('#06C755')}
-          >
+          <button onClick={loginWithLine} style={buttonStyle('#06C755')}>
             LINEでログイン
           </button>
         </>
       ) : (
-        <>
-          <p style={{ color: '#666', marginBottom: '10px' }}>
-            ログインしました：{user.displayName || 'ユーザー'}様
+        <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+          <p style={{ color: '#666', marginBottom: '20px' }}>
+            こんにちは、{user.displayName || 'ユーザー'}様
           </p>
-          <p style={{ color: '#666', marginBottom: '30px', fontSize: '14px' }}>
-            サービスを利用するにはプランにお申し込みください。
-          </p>
-          <button 
-            onClick={handlePayment}
-            style={buttonStyle('#0070f3')}
-          >
-            プランに申し込む（決済へ）
-          </button>
+
+          {/* 🚀 支払い状態による表示の切り分け */}
+          {isPaid ? (
+            <div style={{ 
+              padding: '30px 20px', 
+              border: '3px gold solid', 
+              borderRadius: '20px', 
+              backgroundColor: '#fffbe6',
+              boxShadow: '0 4px 15px rgba(212, 160, 23, 0.2)',
+              marginBottom: '30px'
+            }}>
+              <h2 style={{ color: '#d4a017', margin: '0 0 10px 0' }}>🎁 会員限定特典 🎁</h2>
+              <p style={{ fontSize: '14px', color: '#856404' }}>いつもご利用ありがとうございます！</p>
+              <hr style={{ border: '0', borderTop: '1px dashed #d4a017', margin: '15px 0' }} />
+              <p style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>クーポンコード</p>
+              <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#333', margin: '0' }}>SMILE2026</p>
+              <p style={{ fontSize: '11px', color: '#999', marginTop: '15px' }}>※お会計時にこの画面を提示してください</p>
+            </div>
+          ) : (
+            <div style={{ marginBottom: '30px' }}>
+              <p style={{ fontSize: '14px', color: '#666', marginBottom: '20px' }}>
+                限定クーポンを利用するには<br />プランへの申し込みが必要です。
+              </p>
+              <button onClick={handlePayment} style={buttonStyle('#0070f3')}>
+                プランに申し込む（決済へ）
+              </button>
+            </div>
+          )}
+
           <button 
             onClick={() => auth.signOut()}
-            style={{ marginTop: '20px', background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', textDecoration: 'underline' }}
+            style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px' }}
           >
             ログアウト
           </button>
-        </>
+        </div>
       )}
-
-      <div style={{ marginTop: '20px', fontSize: '12px', color: '#ccc' }}>
-        {!user ? 'Step 1: ユーザー認証を開始します' : 'Step 2: 決済を完了させてください'}
-      </div>
     </div>
   );
 }
 
-// ボタンの共通スタイル
 const buttonStyle = (bgColor) => ({
   backgroundColor: bgColor,
   color: 'white',
-  padding: '14px 28px',
+  padding: '16px 32px',
   border: 'none',
-  borderRadius: '12px',
+  borderRadius: '15px',
   fontSize: '18px',
   cursor: 'pointer',
   fontWeight: 'bold',
   boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-  transition: 'transform 0.1s'
+  width: '100%'
 });
