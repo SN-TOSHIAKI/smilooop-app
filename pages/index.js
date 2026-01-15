@@ -29,7 +29,7 @@ export default function Home() {
     
     // 🚀 あなたのStripe支払いリンクをここに貼ってください
     // 末尾に client_reference_id をつけることで、メールアドレスが違っても紐付け可能になります
-    const stripePaymentUrl = `https://buy.stripe.com/test_xxxxxx?client_reference_id=${user.uid}`;
+    const stripePaymentUrl = `https://buy.stripe.com/14A28raHs2ppdOXaJi5wI03?client_reference_id=${user.uid}`;
     
     window.location.href = stripePaymentUrl;
   };
