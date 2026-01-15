@@ -27,11 +27,20 @@ export default function Home() {
   const handlePayment = () => {
     if (!user) return;
     
-    // 🚀 あなたのStripe支払いリンクをここに貼ってください
-    // 末尾に client_reference_id をつけることで、メールアドレスが違っても紐付け可能になります
-    const stripePaymentUrl = `https://buy.stripe.com/14A28raHs2ppdOXaJi5wI03?client_reference_id=${user.uid}`;
+    // 1. あなたの決済リンク
+    const baseStripeUrl = "https://buy.stripe.com/14A28raHs2ppdOXaJi5wI03"; 
     
-    window.location.href = stripePaymentUrl;
+    try {
+      // 2. 安全にUIDを合体させる
+      const paymentUrl = new URL(baseStripeUrl);
+      paymentUrl.searchParams.set('client_reference_id', user.uid);
+      
+      // 3. ジャンプ！
+      window.location.href = paymentUrl.toString();
+    } catch (e) {
+      // 万が一URL作成に失敗した時の予備
+      window.location.href = baseStripeUrl + "?client_reference_id=" + user.uid;
+    }
   };
 
   return (
