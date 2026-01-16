@@ -27,7 +27,7 @@ export default async function handler(req, res) {
         grant_type: 'authorization_code',
         code: code,
         redirect_uri: 'https://app.smilooop.com/callback',
-        client_id: process.env.LINE_CLIENT_ID,
+        client_id: process.env.NEXT_PUBLIC_LINE_CLIENT_ID,
         client_secret: process.env.LINE_CLIENT_SECRET,
       }),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       'https://api.line.me/oauth2/v2.1/verify',
       qs.stringify({
         id_token: idToken,
-        client_id: process.env.LINE_CLIENT_ID,
+        client_id: process.env.NEXT_PUBLIC_LINE_CLIENT_ID,
       }),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
