@@ -15,7 +15,8 @@
     "micro": "^10.0.1",
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "stripe": "^20.1.2"
   },
   "devDependencies": {
     "eslint": "latest",
