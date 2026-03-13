@@ -1,16 +1,13 @@
 // components/Subscription.js
 import styles from './Subscription.module.css';
 
-export default function Subscription({ userName, isAgreed, setIsAgreed, onPayment, onLogout }) {
-  return (
+
     <div className={styles.container}>
       {/* ヘッダーセクション */}
       <section className={styles.headerSection}>
         <p className={styles.headerTitle}>こんにちは、{userName}様</p>
         <div className={styles.lineConnection}>
-          <img src="/images/line-icon.png" alt="LINE" className={styles.iconMain} />
-          <span className={styles.arrow}>⬅️➡️</span>
-          <img src="/images/logo.png" alt="smilooop" className={styles.iconMain} />
+          <img src="/images/sub-app-icon.png" alt="LINE-smilooop" className={styles.iconMain} />
         </div>
         <p className={styles.connectionStatus}>LINE連携が完了しました！</p>
       </section>
@@ -18,22 +15,16 @@ export default function Subscription({ userName, isAgreed, setIsAgreed, onPaymen
       {/* ヒーローセクション */}
       <section className={styles.heroSection}>
         <h1 className={styles.heroText}>
-          今日から、<br />
-          あなたの<span className={styles.highlightGreen}>街のお気に入り</span>を<br />
-          もっと<span className={styles.highlightPink}>お得</span>に。
+         
+        <img src="/images/sub-header.png" alt="smilooop" className={styles.logoMain} />
         </h1>
-        <img src="/images/logo.png" alt="smilooop" className={styles.logoMain} />
-        <img src="/images/people-illustration.png" alt="people" className={styles.illustration} />
       </section>
 
       {/* 特典セクション */}
       <section className={styles.benefitSection}>
         <h2 className={styles.sectionTitle}>会員だけの特別な体験</h2>
         <div className={styles.benefitCard}>
-          <p className={styles.benefitMainText}>
-            提携店舗で<br />
-            いつでも<span className={styles.percentText}>10%OFF!</span>
-          </p>
+          <img src="/images/benefit-maintext.png" alt="提携店舗でいつでも10%OFF！" />
           <p className={styles.benefitDetail}>
             お食事、お買い物、リラクゼーションなど、<br />
             smilooop提携店舗での<br />
@@ -46,9 +37,7 @@ export default function Subscription({ userName, isAgreed, setIsAgreed, onPaymen
       <section className={styles.priceSection}>
         <h2 className={styles.sectionTitle}>ご利用価格</h2>
         <div className={styles.priceValue}>
-          <span>月額</span>
-          <span className={styles.priceNumber}>500</span>
-          <span>円 (税込)</span>
+          <img src="/images/price-value.png" alt="月額500円（税込）" />
         </div>
         <p className={styles.priceNote}>
           ※コーヒー1杯分のお値段で、<br />
@@ -60,15 +49,8 @@ export default function Subscription({ userName, isAgreed, setIsAgreed, onPaymen
       <section className={styles.trustSection}>
         <h2 className={styles.sectionTitle}>安心して<br />ご登録いただくために</h2>
         <div>
-          <p className={styles.trustHighlight}>1ヶ月ごとの自動更新ですが、</p>
-          <p className={styles.trustHighlight}>契約の縛りはありません。</p>
+          <img src="/images/trust-text.png" alt="1ヶ月ごとの自動更新ですが、契約の縛りはありません。解約はマイページからいつでも簡単に行えますので、まずは1ヶ月だけお試しいただくのも大歓迎です。" />
         </div>
-        <p className={styles.trustDetail}>
-          解約はマイページから<br />
-          いつでも簡単に行えますので、<br />
-          まずは1ヶ月だけ<br />
-          <span className={styles.highlightGreen}>お試し</span>いただくのも<span className={styles.highlightGreen}>大歓迎</span>です。
-        </p>
       </section>
 
       {/* 同意フォームとボタン */}
@@ -97,10 +79,5 @@ export default function Subscription({ userName, isAgreed, setIsAgreed, onPaymen
           月額500円でサブスク会員になる
         </button>
 
-        <button className={styles.logoutButton} onClick={onLogout}>
-          ログアウト
-        </button>
       </section>
     </div>
-  );
-}
