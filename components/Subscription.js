@@ -5,7 +5,7 @@ export default function Subscription({ isAgreed, setIsAgreed, onPayment }) {
   return (
     <div style={{ marginBottom: '30px' }}>
       <p style={{ fontSize: '14px', color: '#666', marginBottom: '20px' }}>
-        限定クーポンを利用するには<br />サブスクの申し込みが必要です。
+        限定クーポンを利用するには<br />サブスク会員の申し込みが必要です。
       </p>
 
       <div style={{ 
