@@ -1,39 +1,103 @@
 /* components/Subscription.module.css */
 .container {
-  margin-bottom: 30px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  color: #333;
+  text-align: center;
+  background-color: #fff;
 }
 
-.text {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 20px;
+/* ヘッダーエリア（水色） */
+.headerSection {
+  background-color: #f0f5ff;
+  padding: 20px;
 }
-
-.agreementBox {
-  background-color: #f9f9f9;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  text-align: left;
-  border: 1px solid #eee;
-}
-
-.label {
+.headerTitle { font-size: 18px; margin-bottom: 15px; }
+.lineConnection {
   display: flex;
-  align-items: flex-start;
-  cursor: pointer;
-  font-size: 13px;
-  line-height: 1.6;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 10px;
 }
+.iconMain { width: 60px; height: 60px; border-radius: 12px; }
+.arrow { font-size: 24px; }
+.connectionStatus { font-weight: bold; font-size: 18px; margin-top: 10px; }
 
-.checkbox {
-  margin-right: 10px;
-  margin-top: 3px;
-  width: 18px;
-  height: 18px;
+/* ヒーローエリア */
+.heroSection { padding: 40px 20px; }
+.heroText { font-size: 24px; font-weight: bold; line-height: 1.6; }
+.highlightGreen { color: #00a884; }
+.highlightPink { color: #ff3366; font-size: 32px; }
+.logoMain { width: 80%; max-width: 250px; margin: 20px 0; }
+.illustration { width: 100%; height: auto; margin-top: 10px; }
+
+/* 特典エリア（ミントグリーン） */
+.benefitSection {
+  background-color: #e6f7f3;
+  padding: 40px 20px;
 }
+.sectionTitle { font-size: 22px; font-weight: bold; margin-bottom: 20px; }
+.benefitCard {
+  background: white;
+  border-radius: 20px;
+  padding: 30px 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.benefitMainText { font-size: 28px; font-weight: bold; margin-bottom: 15px; }
+.percentText { color: #00a884; font-size: 40px; }
+.benefitDetail { font-size: 15px; color: #666; line-height: 1.8; }
+.redText { color: #ff3366; font-weight: bold; }
 
-.link {
-  color: #0070f3;
+/* 価格エリア（クリーム色） */
+.priceSection {
+  background-color: #fffbe6;
+  padding: 40px 20px;
+}
+.priceValue { font-size: 24px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.priceNumber { font-size: 60px; color: #ff3366; border: 2px solid #ff3366; padding: 0 10px; border-radius: 10px; background: white; margin: 10px 0; }
+.priceNote { font-size: 14px; color: #666; margin-top: 20px; line-height: 1.6; }
+
+/* 安心エリア */
+.trustSection { padding: 40px 20px; }
+.trustHighlight { font-size: 20px; font-weight: bold; border-bottom: 4px solid #ffcc00; display: inline-block; margin-bottom: 15px; }
+.trustDetail { font-size: 16px; font-weight: bold; line-height: 1.8; margin-top: 20px; }
+
+/* フォームエリア */
+.formSection { padding: 20px; background-color: #f9f9f9; }
+.agreementBox {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+  margin-bottom: 20px;
+}
+.label { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer; }
+.checkbox { width: 20px; height: 20px; margin-top: 2px; }
+.link { color: #0070f3; text-decoration: underline; }
+
+.submitButton {
+  background-color: #0070f3;
+  color: white;
+  border: none;
+  padding: 18px;
+  width: 100%;
+  border-radius: 12px;
+  font-size: 18px;
   font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+.submitButton:disabled { background-color: #ccc; cursor: not-allowed; }
+
+.logoutButton {
+  background: none;
+  border: none;
+  color: #ccc;
+  text-decoration: underline;
+  margin: 20px 0;
+  cursor: pointer;
 }
