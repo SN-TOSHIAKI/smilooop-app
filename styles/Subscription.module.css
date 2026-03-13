@@ -1,0 +1,39 @@
+/* components/Subscription.module.css */
+.container {
+  margin-bottom: 30px;
+}
+
+.text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.agreementBox {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  text-align: left;
+  border: 1px solid #eee;
+}
+
+.label {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.checkbox {
+  margin-right: 10px;
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+}
+
+.link {
+  color: #0070f3;
+  font-weight: bold;
+}

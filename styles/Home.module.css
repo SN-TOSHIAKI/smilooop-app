@@ -1,0 +1,63 @@
+/* styles/Home.module.css */
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: sans-serif;
+  padding: 20px;
+}
+
+.logo {
+  width: 80%;
+  max-width: 300px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.welcomeText {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.userName {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* 共通ボタン */
+.baseButton {
+  color: white;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 15px;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.lineButton {
+  composes: baseButton;
+  background-color: #06C755;
+}
+
+.logoutButton {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.loadingWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}

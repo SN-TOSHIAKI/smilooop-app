@@ -1,0 +1,45 @@
+/* components/Coupon.module.css */
+.couponCard {
+  padding: 30px 20px;
+  border: 3px gold solid;
+  border-radius: 20px;
+  background-color: #fffbe6;
+  box-shadow: 0 4px 15px rgba(212, 160, 23, 0.2);
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.title {
+  color: #d4a017;
+  margin: 0 0 10px 0;
+}
+
+.description {
+  font-size: 14px;
+  color: #856404;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px dashed #d4a017;
+  margin: 15px 0;
+}
+
+.codeLabel {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.code {
+  font-size: 28px;
+  fontWeight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.note {
+  font-size: 11px;
+  color: #999;
+  margin-top: 15px;
+}
