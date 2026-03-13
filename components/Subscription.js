@@ -1,7 +1,8 @@
-// components/Subscription.js
 import styles from './Subscription.module.css';
 
-
+// 🚀 「export default function...」で囲む必要があります
+export default function Subscription({ userName, isAgreed, setIsAgreed, onPayment }) {
+  return (
     <div className={styles.container}>
       {/* ヘッダーセクション */}
       <section className={styles.headerSection}>
@@ -15,8 +16,7 @@ import styles from './Subscription.module.css';
       {/* ヒーローセクション */}
       <section className={styles.heroSection}>
         <h1 className={styles.heroText}>
-         
-        <img src="/images/sub-header.png" alt="smilooop" className={styles.logoMain} />
+          <img src="/images/sub-header.png" alt="smilooop" className={styles.logoMain} />
         </h1>
       </section>
 
@@ -49,7 +49,7 @@ import styles from './Subscription.module.css';
       <section className={styles.trustSection}>
         <h2 className={styles.sectionTitle}>安心して<br />ご登録いただくために</h2>
         <div>
-          <img src="/images/trust-text.png" alt="1ヶ月ごとの自動更新ですが、契約の縛りはありません。解約はマイページからいつでも簡単に行えますので、まずは1ヶ月だけお試しいただくのも大歓迎です。" />
+          <img src="/images/trust-text.png" alt="1ヶ月ごとの自動更新ですが、契約の縛りはありません。" />
         </div>
       </section>
 
@@ -78,6 +78,7 @@ import styles from './Subscription.module.css';
         >
           月額500円でサブスク会員になる
         </button>
-
       </section>
     </div>
+  ); // 🚀 ここで return を閉じる
+} // 🚀 ここで function を閉じる
