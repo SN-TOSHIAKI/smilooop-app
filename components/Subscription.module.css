@@ -20,15 +20,15 @@
 /* ヘッダーエリア（水色） */
 .headerSection {
   background-color: #f0f5ff;
-  padding: 30px 20px;
+  padding: 10px 20px;
 }
-.headerTitle { font-size: 16px; margin-bottom: 20px; color: #666; }
+.headerTitle { font-size: 16px; margin-bottom: 10px; color: #666; }
 .iconMain { width: 80%; max-width: 300px; }
-.connectionStatus { font-weight: bold; font-size: 18px; margin-top: 15px; }
+.connectionStatus { font-weight: bold; font-size: 18px; margin-top: 5px; }
 
 /* ヒーローエリア */
 .heroSection {
-  padding: 0; /* 画像がメインなので余白を調整 */
+  padding: 20px 0; /* 画像がメインなので余白を調整 */
 }
 .heroText { margin: 0; }
 .logoMain { width: 100%; }
@@ -36,13 +36,13 @@
 /* 特典エリア（ミントグリーン） */
 .benefitSection {
   background-color: #e6f7f3;
-  padding: 40px 20px;
+  padding: 40px 10px;
 }
-.sectionTitle { font-size: 22px; font-weight: bold; margin-bottom: 25px; }
+.sectionTitle { font-size: 26px; font-weight: bold; margin-bottom: 25px; }
 .benefitCard {
   background: white;
   border-radius: 20px;
-  padding: 30px 20px;
+  padding: 30px 10px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 .benefitDetail { 
@@ -60,7 +60,7 @@
   padding: 40px 20px;
 }
 .priceValue { margin: 20px 0; }
-.priceNote { font-size: 14px; color: #666; margin-top: 20px; line-height: 1.6; }
+.priceNote { font-size: 15px; color: #666; margin-top: 20px; line-height: 1.6; }
 
 /* 安心エリア（白） */
 .trustSection {
