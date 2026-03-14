@@ -42,6 +42,7 @@
 .lineButton {
   composes: baseButton;
   background-color: #06C755;
+  width: 90%;
 }
 
 .logoutButton {
