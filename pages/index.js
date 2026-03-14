@@ -63,7 +63,10 @@ export default function Home() {
     <div className={styles.mainContainer}>
       <Head><title>Smilooop</title></Head>
 
-      <img src="/images/logo.png" alt="Smilooop Logo" className={styles.logo} />
+      {/* 🚀 1. ロゴ：ログイン前、または支払い済みの時だけ表示する */}
+      {(!user || isPaid) && (
+        <img src="/images/logo.png" alt="Smilooop Logo" className={styles.logo} />
+      )}
       
       {!user ? (
         <>
@@ -71,22 +74,31 @@ export default function Home() {
           <button onClick={loginWithLine} className={styles.lineButton}>LINEでログイン</button>
         </>
       ) : (
-        <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
-          <p className={styles.userName}>こんにちは、{userName}様</p>
+        <div style={{ width: '100%', maxWidth: '500px', textAlign: 'center' }}>
+          
+          {/* 🚀 2. 名前：支払い済みの時（クーポン画面）だけ表示する */}
+          {isPaid && (
+            <p className={styles.userName}>こんにちは、{userName}様</p>
+          )}
 
           {isPaid ? (
             <Coupon />
           ) : (
             <Subscription 
+              userName={userName} // 🚀 Subscription.js 内で名前を表示するために渡す
               isAgreed={isAgreed} 
               setIsAgreed={setIsAgreed} 
               onPayment={handlePayment} 
+              onLogout={() => auth.signOut()} // 必要であればログアウトも渡す
             />
           )}
 
-          <button onClick={() => auth.signOut()} className={styles.logoutButton}>
-            ログアウト
-          </button>
+          {/* クーポン画面（isPaid）の時だけ、外側にログアウトボタンを置く */}
+          {isPaid && (
+            <button onClick={() => auth.signOut()} className={styles.logoutButton}>
+              ログアウト
+            </button>
+          )}
         </div>
       )}
     </div>
