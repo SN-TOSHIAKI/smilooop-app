@@ -65,7 +65,7 @@ export default function Home() {
 
       {/* 🚀 1. ロゴ：ログイン前、または支払い済みの時だけ表示する */}
       {!user && (
-        <img src="/images/logo.png" alt="Smilooop Logo" className={styles.logo} />
+        <img src="/images/login-header.png" alt="さあ、はじめよう！Smilooop" className={styles.logo} />
       )}
       
       {!user ? (
