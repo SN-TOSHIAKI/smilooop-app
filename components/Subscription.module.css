@@ -28,7 +28,7 @@
 
 /* ヒーローエリア */
 .heroSection {
-  padding: 20px 0; /* 画像がメインなので余白を調整 */
+  padding: 40px 10px; /* 画像がメインなので余白を調整 */
 }
 .heroText { margin: 0; }
 .logoMain { width: 100%; }
@@ -38,7 +38,7 @@
   background-color: #e6f7f3;
   padding: 40px 10px;
 }
-.sectionTitle { font-size: 26px; font-weight: bold; margin-bottom: 25px; }
+.sectionTitle { font-size: 30px; font-weight: bold; margin: 0 0 30px; }
 .benefitCard {
   background: white;
   border-radius: 20px;
