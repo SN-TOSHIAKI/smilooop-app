@@ -61,7 +61,7 @@ export default function Home() {
 
   return (
     <div className={styles.mainContainer}>
-      <Head><title>Smilooop</title></Head>
+      <Head><title>地域のお店とお客様をつなぐ　Smilooop</title></Head>
 
       {/* 🚀 1. ロゴ：ログイン前、または支払い済みの時だけ表示する */}
       {(!user || isPaid) && (
