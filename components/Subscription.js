@@ -78,6 +78,9 @@ export default function Subscription({ userName, isAgreed, setIsAgreed, onPaymen
         >
           月額500円でサブスク会員になる
         </button>
+        <button className={styles.logoutButton} onClick={onLogout}>
+          ログアウト
+        </button>
       </section>
     </div>
   ); // 🚀 ここで return を閉じる
