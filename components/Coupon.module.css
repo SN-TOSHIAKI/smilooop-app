@@ -81,3 +81,37 @@
   color: #999;
   margin-top: 20px;
 }
+
+/* components/Coupon.module.css に追記 */
+
+.currentTime {
+  font-family: monospace; /* 数字がずれないように等幅フォント */
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+  background: #f0f0f0;
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 5px;
+}
+
+.usedButton {
+  background-color: #fff0f3; /* 少し赤みのある白で警告感 */
+  color: #ff3366;
+  border: 2px solid #ff3366;
+  padding: 15px 20px;
+  font-size: 15px; /* テキスト量が多いので少し小さめに */
+  font-weight: bold;
+  border-radius: 15px;
+  width: 100%;
+  line-height: 1.6;
+  cursor: default;
+}
+
+.note {
+  font-size: 14px; /* カウントダウンを読みやすく少し大きく */
+  font-weight: bold;
+  color: #666;
+  margin-top: 20px;
+}

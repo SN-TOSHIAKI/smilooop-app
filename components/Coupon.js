@@ -5,9 +5,16 @@ import { doc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore'
 import styles from './Coupon.module.css';
 
 export default function Coupon() {
-  const [couponStatus, setCouponStatus] = useState('idle'); // 'idle' or 'active'
+  const [couponStatus, setCouponStatus] = useState('idle');
   const [timeLeft, setTimeLeft] = useState(0);
+  const [nowTime, setNowTime] = useState(new Date()); // 現在時刻用
   const user = auth.currentUser;
+
+  // 🚀 1秒ごとに現在時刻を更新
+  useEffect(() => {
+    const timer = setInterval(() => setNowTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -53,10 +60,25 @@ export default function Coupon() {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  // 🚀 現在の日時をフォーマットする関数
+  const formatFullDate = (date) => {
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  };
+
   return (
     <div className={styles.container}>
+      {/* 🚀 現在時刻の表示（不正防止） */}
+      <p className={styles.currentTime}>{formatFullDate(nowTime)}</p>
+
       <div className={styles.couponCard}>
-        {/* 🚀 画像の切り替えとアニメーション適用 */}
         <div className={couponStatus === 'active' ? styles.imageWrapperActive : styles.imageWrapper}>
           <img 
             src={couponStatus === 'active' ? "/images/coupon-b.png" : "/images/coupon-a.png"} 
@@ -65,7 +87,6 @@ export default function Coupon() {
           />
         </div>
         
-        {/* 🚀 ボタン表示の切り替え */}
         {couponStatus === 'idle' ? (
           <button className={styles.useButton} onClick={useCoupon}>
             クーポンを今すぐ使う
@@ -73,15 +94,15 @@ export default function Coupon() {
         ) : (
           <button className={styles.usedButton} disabled>
             クーポンを利用しました。<br />
-            有効時間（{formatTime(timeLeft)}）
+            店員さんにこの画面を提示してください。
           </button>
         )}
       </div>
 
       <p className={styles.note}>
         {couponStatus === 'idle' 
-          ? "※「使う」を押すと10分間カウントダウンが始まります" 
-          : "※店員さんにこの画面を提示してください"}
+          ? "※「使う」を押すと10分間再利用できなくなります" 
+          : `次回利用できるまで、あと（${formatTime(timeLeft)}）`}
       </p>
     </div>
   );
