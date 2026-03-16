@@ -71,7 +71,7 @@ export default function Home() {
       {!user ? (
         <>
           <p className={styles.welcomeText}>ようこそアプリケーションへ</p>
-          <p className={styles.welcomeText}>まずはLINEでログインしてください</p>
+          <p className={styles.welcomeText}>まずはLINEでログインしてください。</p>
           <button onClick={loginWithLine} className={styles.lineButton}>LINEでログイン</button>
         </>
       ) : (
