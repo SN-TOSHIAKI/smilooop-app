@@ -93,7 +93,7 @@ export default function Coupon() {
           </button>
         ) : (
           <button className={styles.usedButton} disabled>
-            クーポンを利用しました。<br />
+            クーポンを利用しました<br />
             店員さんにこの画面を提示してください
           </button>
         )}
